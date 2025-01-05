@@ -37,4 +37,4 @@ Once you've saved a note for a user, it will show above their account name whene
 5. Select the extracted folder from step 1
 
 <br>
-It should work on Android too if you use the twitter PWA.
+It should work on Android too if you use twitter web.
