@@ -35,6 +35,3 @@ Once you've saved a note for a user, it will show above their account name whene
 3. Enable developer mode on the top right toggle
 4. Click "Load Unpacked" button on the top left.
 5. Select the extracted folder from step 1
-
-<br>
-It should work on Android too if you use twitter web.
