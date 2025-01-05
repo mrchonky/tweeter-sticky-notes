@@ -17,7 +17,6 @@ window.addEventListener("load", async () => {
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   const isEnabled = message.data;
-  console.log("toggled", isEnabled);
 
   if (!isEnabled) {
     if (observer) {
@@ -48,10 +47,7 @@ function processTweets() {
 
       const username = _getMatchingText(tweet, USERNAME_REGEX);
 
-      console.log(username);
-
       chrome.storage.sync.get(username, (data) => {
-        console.log(data);
         const note = data[username];
 
         if (!note) {
