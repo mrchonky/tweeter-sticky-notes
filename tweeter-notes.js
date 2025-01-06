@@ -1,6 +1,7 @@
 const ENABLED_KEY = "isEnabled";
 const USERNAME_REGEX = /@[a-zA-Z0-9._-]+/;
 const USER_NOTE_CLASS = "user-notefwe98f7aw9efa9ew7fzsefawf"; // unique class for easy selection
+const TWEET_SELECTOR = '[data-testid="tweet"]';
 
 /** @type MutationObserver|null */
 let observer = null;
@@ -15,7 +16,7 @@ window.addEventListener("load", async () => {
   }
 });
 
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((message) => {
   const isEnabled = message.data;
 
   if (!isEnabled) {
@@ -28,7 +29,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       .querySelectorAll(`.${USER_NOTE_CLASS}`)
       .forEach((note) => note.remove());
 
-    document.querySelectorAll('[data-testid="tweet"]').forEach((tweet) => {
+    document.querySelectorAll(TWEET_SELECTOR).forEach((tweet) => {
       delete tweet.dataset.processed;
     });
 
@@ -40,31 +41,34 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 });
 
 function processTweets() {
-  const tweets = document.querySelectorAll('[data-testid="tweet"]');
+  const tweets = document.querySelectorAll(TWEET_SELECTOR);
+
   tweets.forEach((tweet) => {
-    if (!tweet.dataset.processed) {
-      tweet.dataset.processed = "true";
-
-      const username = _getMatchingText(tweet, USERNAME_REGEX);
-
-      chrome.storage.sync.get(username, (data) => {
-        const note = data[username];
-
-        if (!note) {
-          return;
-        }
-
-        const p = document.createElement("p");
-        p.innerText = `(${note})`;
-        p.style.marginTop = "12px";
-        p.style.marginBottom = 0;
-        p.style.marginLeft = "64px";
-        p.style.fontFamily = "TwitterChirp, sans-serif";
-        p.classList.add(USER_NOTE_CLASS);
-
-        tweet.insertAdjacentElement("beforebegin", p);
-      });
+    if (tweet.dataset.processed) {
+      return;
     }
+
+    tweet.dataset.processed = "true";
+
+    const username = _getMatchingText(tweet, USERNAME_REGEX);
+
+    chrome.storage.sync.get(username, (data) => {
+      const note = data[username];
+
+      if (!note) {
+        return;
+      }
+
+      const p = document.createElement("p");
+      p.innerText = `(${note})`;
+      p.style.marginTop = "12px";
+      p.style.marginBottom = 0;
+      p.style.marginLeft = "64px";
+      p.style.fontFamily = "TwitterChirp, sans-serif";
+      p.classList.add(USER_NOTE_CLASS);
+
+      tweet.insertAdjacentElement("beforebegin", p);
+    });
   });
 }
 
@@ -73,13 +77,12 @@ function observeTimeline() {
     observer.disconnect();
   }
 
-  const targetNode = document.body;
   observer = new MutationObserver((mutationsList) => {
     _handleDropdown(mutationsList);
     processTweets();
   });
 
-  observer.observe(targetNode, {
+  observer.observe(document.body, {
     childList: true,
     subtree: true,
   });
@@ -87,55 +90,67 @@ function observeTimeline() {
 
 function _handleDropdown(mutationsList) {
   for (const mutation of mutationsList) {
-    if (mutation.type === "childList") {
-      const menu = document.querySelector('[role="menu"]');
-      if (menu && !menu.dataset.processed) {
-        menu.dataset.processed = "true";
+    if (mutation.type !== "childList") {
+      continue;
+    }
 
-        const username = _getMatchingText(menu, USERNAME_REGEX);
-        const { color, fontWeight, fontFamily } = (function () {
-          const usernameNode = _findFirstMatchingChild(menu, USERNAME_REGEX);
+    const menu = document.querySelector('[role="menu"]');
 
-          const c = getComputedStyle(usernameNode).color;
-          const fw = getComputedStyle(usernameNode).fontWeight;
-          const ff = getComputedStyle(usernameNode).fontFamily;
+    if (!menu || menu.dataset.processed) {
+      continue;
+    }
 
-          return { color: c, fontWeight: fw, fontFamily: ff };
-        })();
+    menu.dataset.processed = "true";
 
-        chrome.storage.sync.get(username, (data) => {
-          const note = data[username];
+    const username = _getMatchingText(menu, USERNAME_REGEX);
+    const { color, fontWeight, fontFamily } = (function () {
+      const usernameNode = _findFirstMatchingChild(menu, USERNAME_REGEX);
 
-          let btnText;
-          let clickHandler;
+      const c = getComputedStyle(usernameNode).color;
+      const fw = getComputedStyle(usernameNode).fontWeight;
+      const ff = getComputedStyle(usernameNode).fontFamily;
 
-          if (!note) {
-            btnText = `Sticky note ${username}`;
-            clickHandler = function () {
-              _clickOut();
+      return { color: c, fontWeight: fw, fontFamily: ff };
+    })();
 
-              const newNote = window.prompt(
-                `Add a sticky note for ${username}`,
-              );
+    chrome.storage.sync.get(username, (data) => {
+      const note = data[username];
 
-              if (newNote === null || newNote.trim() === "") {
-                return;
-              }
+      let btnText;
+      let clickHandler;
 
-              _updateStickyNote(username, newNote);
-            };
-          } else {
-            btnText = "Delete sticky note";
-            clickHandler = function () {
-              _clickOut();
+      if (!note) {
+        btnText = `Sticky note ${username}`;
+        clickHandler = function () {
+          _clickOut();
 
-              _updateStickyNote(username, null);
-            };
+          const newNote = window.prompt(`Add a sticky note for ${username}`);
+
+          if (newNote === null || newNote.trim() === "") {
+            return;
           }
 
-          const wrapper = document.createElement("div");
+          _updateStickyNote(username, newNote);
+        };
+      } else {
+        btnText = "Delete sticky note";
+        clickHandler = function () {
+          _clickOut();
 
-          const addTagBtn = `
+          _updateStickyNote(username, null);
+        };
+      }
+
+      const { svgWidth, svgHeight } = (function () {
+        const icon = menu.querySelector("svg");
+        const w = getComputedStyle(icon).width;
+        const h = getComputedStyle(icon).height;
+        return { svgWidth: w, svgHeight: h };
+      })();
+
+      const wrapper = document.createElement("div");
+
+      const addTagBtn = `
             <div role="menuitem" tabindex="0" class="css-175oi2r r-1loqt21 r-18u37iz r-1mmae3n r-3pj75a r-13qz1uu r-o7ynqc r-6416eg r-1ny4l3l">
                 <div class="css-175oi2r r-1777fci r-faml9v">
                     <svg width="24px" height="24px" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -148,34 +163,32 @@ function _handleDropdown(mutationsList) {
                 ${btnText}
             </div>
         `;
-          wrapper.style.display = "flex";
-          wrapper.style.alignItems = "center";
-          wrapper.style.width = "100%";
-          wrapper.innerHTML = addTagBtn;
-          wrapper.style.fontFamily = fontFamily;
-          wrapper.style.fontWeight = fontWeight;
-          wrapper.style.color = color;
+      wrapper.style.display = "flex";
+      wrapper.style.alignItems = "center";
+      wrapper.style.width = "100%";
+      wrapper.innerHTML = addTagBtn;
+      wrapper.style.fontFamily = fontFamily;
+      wrapper.style.fontWeight = fontWeight;
+      wrapper.style.color = color;
 
-          menu
-            .querySelector('[role="menuitem"]')
-            .insertAdjacentElement("afterend", wrapper);
+      menu
+        .querySelector('[role="menuitem"]')
+        .insertAdjacentElement("afterend", wrapper);
 
-          const svg = wrapper.querySelector("svg");
-          svg.style.fill = color;
-          svg.style.width = "18.25px";
-          svg.style.height = "18.25px";
-          svg.style.flexShrink = 0;
+      const svg = wrapper.querySelector("svg");
+      svg.style.fill = color;
+      svg.style.width = svgWidth;
+      svg.style.height = svgHeight;
+      svg.style.flexShrink = 0;
 
-          wrapper.addEventListener("click", clickHandler);
-        });
-      }
-    }
+      wrapper.addEventListener("click", clickHandler);
+    });
   }
 }
 
 function _updateStickyNote(username, note) {
   chrome.storage.sync.set({ [username]: note }, () => {
-    const tweets = document.querySelectorAll('[data-testid="tweet"]');
+    const tweets = document.querySelectorAll(TWEET_SELECTOR);
     tweets.forEach((tweet) => {
       delete tweet.dataset.processed;
 
@@ -200,8 +213,8 @@ function _clickOut() {
   }
 }
 
+// Recursively search for matching text in all descendants of parentNode
 function _getMatchingText(parentNode, regexPattern) {
-  // Recursively search for matching text in all descendants of parentNode
   function __searchDescendants(node) {
     if (node.nodeType === Node.TEXT_NODE) {
       const textContent = node.textContent.trim();
@@ -226,8 +239,8 @@ function _getMatchingText(parentNode, regexPattern) {
   return __searchDescendants(parentNode);
 }
 
+// Recursively search for the first element node that contains matching text
 function _findFirstMatchingChild(parentNode, regexPattern) {
-  // Recursively search for the first element node that contains matching text
   function __searchDescendants(node) {
     if (node.nodeType === Node.TEXT_NODE) {
       const textContent = node.textContent.trim();
@@ -247,19 +260,6 @@ function _findFirstMatchingChild(parentNode, regexPattern) {
   }
 
   return __searchDescendants(parentNode);
-}
-
-function _findFirstMatchingParent(node, selector) {
-  let currentNode = node.parentNode;
-
-  while (currentNode) {
-    if (currentNode.matches(selector)) {
-      return currentNode;
-    }
-    currentNode = currentNode.parentNode;
-  }
-
-  return null;
 }
 
 function _findMatchingSibling(element, selector) {
