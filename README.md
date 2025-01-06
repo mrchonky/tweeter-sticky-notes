@@ -1,3 +1,10 @@
+# Tweeter Sticky Notes
+<br>
+
+- [About](https://github.com/mrchonky/tweeter-sticky-notes/edit/main/README.md#about)
+- [How to Install](https://github.com/mrchonky/tweeter-sticky-notes/edit/main/README.md#how-to-install)
+<br>
+
 ## About
 Have you ever seen someone tweet something so retarded that you would like a reminder to never listen to their opinion?
 
@@ -35,3 +42,7 @@ Once you've saved a note for a user, it will show above their account name whene
 3. Enable developer mode on the top right toggle
 4. Click "Load Unpacked" button on the top left.
 5. Select the extracted folder from step 1
+<br>
+Also works on Android. Bookmark x.com onto your home screen.
+<br>
+It will behave like the app and still run browser extensions you have installed.
