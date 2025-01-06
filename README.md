@@ -1,8 +1,8 @@
 # Tweeter Sticky Notes
 <br>
 
-- [About](https://github.com/mrchonky/tweeter-sticky-notes/edit/main/README.md#about)
-- [How to Install](https://github.com/mrchonky/tweeter-sticky-notes/edit/main/README.md#how-to-install)
+- [About](https://github.com/mrchonky/tweeter-sticky-notes?tab=readme-ov-file#about)
+- [How to Install](https://github.com/mrchonky/tweeter-sticky-notes?tab=readme-ov-file#how-to-install)
 <br>
 
 ## About
