@@ -93,9 +93,14 @@ function _handleDropdown(mutationsList) {
         menu.dataset.processed = "true";
 
         const username = _getMatchingText(menu, USERNAME_REGEX);
-        const color = (function () {
+        const { color, fontWeight, fontFamily } = (function () {
           const usernameNode = _findFirstMatchingChild(menu, USERNAME_REGEX);
-          return getComputedStyle(usernameNode).color;
+
+          const c = getComputedStyle(usernameNode).color;
+          const fw = getComputedStyle(usernameNode).fontWeight;
+          const ff = getComputedStyle(usernameNode).fontFamily;
+
+          return { color: c, fontWeight: fw, fontFamily: ff };
         })();
 
         chrome.storage.sync.get(username, (data) => {
@@ -107,7 +112,6 @@ function _handleDropdown(mutationsList) {
           if (!note) {
             btnText = `Sticky note ${username}`;
             clickHandler = function () {
-              // menu.remove();
               _clickOut();
 
               const newNote = window.prompt(
@@ -123,7 +127,6 @@ function _handleDropdown(mutationsList) {
           } else {
             btnText = "Delete sticky note";
             clickHandler = function () {
-              // menu.remove();
               _clickOut();
 
               _updateStickyNote(username, null);
@@ -149,8 +152,8 @@ function _handleDropdown(mutationsList) {
           wrapper.style.alignItems = "center";
           wrapper.style.width = "100%";
           wrapper.innerHTML = addTagBtn;
-          wrapper.style.fontFamily = "TwitterChirp, sans-serif";
-          wrapper.style.fontWeight = 600;
+          wrapper.style.fontFamily = fontFamily;
+          wrapper.style.fontWeight = fontWeight;
           wrapper.style.color = color;
 
           menu
