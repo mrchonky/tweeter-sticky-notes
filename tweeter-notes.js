@@ -107,7 +107,8 @@ function _handleDropdown(mutationsList) {
           if (!note) {
             btnText = `Sticky note ${username}`;
             clickHandler = function () {
-              menu.remove();
+              // menu.remove();
+              _clickOut();
 
               const newNote = window.prompt(
                 `Add a sticky note for ${username}`,
@@ -122,7 +123,8 @@ function _handleDropdown(mutationsList) {
           } else {
             btnText = "Delete sticky note";
             clickHandler = function () {
-              menu.remove();
+              // menu.remove();
+              _clickOut();
 
               _updateStickyNote(username, null);
             };
@@ -182,6 +184,17 @@ function _updateStickyNote(username, note) {
 
     processTweets();
   });
+}
+
+// simulates clicking out of the tweet menu to remove overlays
+function _clickOut() {
+  const x = 0;
+  const y = 0;
+
+  const el = document.elementFromPoint(x, y);
+  if (el) {
+    el.click();
+  }
 }
 
 function _getMatchingText(parentNode, regexPattern) {
