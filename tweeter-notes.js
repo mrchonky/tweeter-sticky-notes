@@ -60,7 +60,6 @@ function processTweets() {
         p.style.marginBottom = 0;
         p.style.marginLeft = "64px";
         p.style.fontFamily = "TwitterChirp, sans-serif";
-        p.style.fontWeight = 600;
         p.classList.add(USER_NOTE_CLASS);
 
         tweet.insertAdjacentElement("beforebegin", p);
@@ -94,7 +93,6 @@ function _handleDropdown(mutationsList) {
         menu.dataset.processed = "true";
 
         const username = _getMatchingText(menu, USERNAME_REGEX);
-        console.log(username);
         const color = (function () {
           const usernameNode = _findFirstMatchingChild(menu, USERNAME_REGEX);
           return getComputedStyle(usernameNode).color;
