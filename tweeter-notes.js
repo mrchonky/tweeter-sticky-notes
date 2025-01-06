@@ -89,16 +89,14 @@ function observeTimeline() {
 function _handleDropdown(mutationsList) {
   for (const mutation of mutationsList) {
     if (mutation.type === "childList") {
-      const dropdown = document.querySelector('[data-testid="Dropdown"]');
-      if (dropdown && !dropdown.dataset.processed) {
-        dropdown.dataset.processed = "true";
+      const menu = document.querySelector('[role="menu"]');
+      if (menu && !menu.dataset.processed) {
+        menu.dataset.processed = "true";
 
-        const username = _getMatchingText(dropdown, USERNAME_REGEX);
+        const username = _getMatchingText(menu, USERNAME_REGEX);
+        console.log(username);
         const color = (function () {
-          const usernameNode = _findFirstMatchingChild(
-            dropdown,
-            USERNAME_REGEX,
-          );
+          const usernameNode = _findFirstMatchingChild(menu, USERNAME_REGEX);
           return getComputedStyle(usernameNode).color;
         })();
 
@@ -111,7 +109,6 @@ function _handleDropdown(mutationsList) {
           if (!note) {
             btnText = `Sticky note ${username}`;
             clickHandler = function () {
-              const menu = document.querySelector('[role="menu"]');
               menu.remove();
 
               const newNote = window.prompt(
@@ -127,7 +124,6 @@ function _handleDropdown(mutationsList) {
           } else {
             btnText = "Delete sticky note";
             clickHandler = function () {
-              const menu = document.querySelector('[role="menu"]');
               menu.remove();
 
               _updateStickyNote(username, null);
@@ -157,7 +153,9 @@ function _handleDropdown(mutationsList) {
           wrapper.style.fontWeight = 600;
           wrapper.style.color = color;
 
-          dropdown.firstChild.insertAdjacentElement("afterend", wrapper);
+          menu
+            .querySelector('[role="menuitem"]')
+            .insertAdjacentElement("afterend", wrapper);
 
           const svg = wrapper.querySelector("svg");
           svg.style.fill = color;
